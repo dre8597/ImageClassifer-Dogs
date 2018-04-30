@@ -245,7 +245,7 @@ def classify_images(image_dir, petlabel_dic, model):
                     )
             ):
                 # found label as stand-alone tern(not within label)
-                if ke`y not in results_dic:
+                if key not in results_dic:
                     results_dic[key] = [truth, model_label, 1]
 
                 # found within a word/term not a label existing on its own

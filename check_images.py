@@ -37,7 +37,8 @@ def main():
     in_arg = get_input_args()
 
     # Accesses values of Arguments 1 and 2 by printing them
-    print("Command Line Arguments:\n  dir=", in_arg.dir, "\n arch =", in_arg.arch, "\n dogfile =", in_arg.dogfile)
+    print("Command Line Arguments:\n  dir=", in_arg.dir,
+          "\n arch =", in_arg.arch, "\n dogfile =", in_arg.dogfile)
 
     # DONE: 3. Define get_pet_labels() function to create pet image labels by
     # creating a dictionary with key=filename and value=file label to be used
@@ -59,19 +60,26 @@ def main():
     # labels wit h the classifier function uisng in_arg.arch, comparing the
     # labels, and creating a dictionary of results (result_dic)
     result_dic = classify_images(in_arg.dir, answers_dic, in_arg.arch)
-    print('\n MATCH:')
+    print("\n MATCH:")
     n_match = 0
     n_notmatch = 0
     for key in result_dic:
         if result_dic[key][2] == 1:
             n_match += 1
-            print("Real: %-26s Classifier: %-30s" % (result_dic[key][0], result_dic[key][1]))
-        print("\n NOT A MATCH:")
-        for key in result_dic:
+            print("Real: %-26s Classifier: %-30s" %
+                  (result_dic[key][0], result_dic[key][1]))
+
+    print("\n NOT A MATCH:")
+    for key in result_dic:
+        if key in result_dic:
             if result_dic[key][2] == 0:
-                n_notmatch += 1
-                print("Real: %-26s Classifier: %-30s" % (result_dic[key][0], result_dic[key][1]))
-            print("\n# Total Images", n_match + n_notmatch, "# Mathces:", n_match, "# NOT Matches", n_notmatch)
+                n_match += 1
+                print("Real: %-26s Classifier: %-30s" %
+                      (result_dic[key][0], result_dic[key][1]))
+
+    print("\n#Total Images", n_match + n_notmatch, "#Matches:", n_match,
+          "# Not Matches:", n_notmatch)
+
     # TODO: 5. Define adjust_results4_isadog() function to adjust the results
     # dictionary(result_dic) to determine if classifier correctly classified
     # images as 'a dog' or 'not a dog'. This demonstrates if the model can
@@ -180,13 +188,14 @@ def get_pet_labels(image_dir):
             if in_files[index] not in petlabels_dic:
                 petlabels_dic[in_files[index]] = pet_label
             else:
-                print("Warning: Duplicate files exist in directory", in_files[index])
+                print("Warning: Duplicate files exist in directory",
+                      in_files[index])
 
     # returns dictionary of labels
     return petlabels_dic
 
 
-def classify_images(image_dir, petlabel_dic, model):
+def classify_images(images_dir, petlabel_dic, model):
     """
     Creates classifier labels with classifier function, compares labels, and
     creates a dictionary containing both labels and comparison of them to be
@@ -211,7 +220,8 @@ def classify_images(image_dir, petlabel_dic, model):
                     idx 2 = 1/0 (int)   where 1 = match between pet image and
                     classifer labels and 0 = no match between labels
     """
-    # Defining empty dictionary
+    # Creates dictionary that will move all the results key=filename
+    # value =list[pet_label,Classifier Label, Match(1=yes,0=no)]
     results_dic = dict()
 
     # Process all files in the petlabels_dic- use images_dir to give fullpath
@@ -220,7 +230,7 @@ def classify_images(image_dir, petlabel_dic, model):
         # Runs classifier function to classigy the images classifier function
         # inputs: path + filename and model, returns model_label
         # as classifier label
-        model_label = classifier(image_dir + key, model)
+        model_label = classifier(images_dir + key, model)
 
         # Processes the results so they can be compared with pet image labels
         # set labels to lowercase(lower) and stripping off whitespace(strip)
@@ -232,32 +242,32 @@ def classify_images(image_dir, petlabel_dic, model):
         truth = petlabel_dic[key]
         found = model_label.find(truth)
 
-        # If found (0 or greater) then make sure true answer wasn't found within
+        # if found (o or greater) then make sure true answer wasn't found within
         # another word and thus not really found, if truely found then add to
-        # results dictionary and set match=1(yes)otherwise as match=0
+        # results dictionary and set match=1(yes)otherwise as match=0(no)
         if found >= 0:
             if ((found == 0 and len(truth) == len(model_label)) or
-                    (((found == 0) or (model_label[found - 1] == " ")) and
-                     ((found + len(truth) == len(model_label)) or
-                      (model_label[found + len(truth):found + len(truth) + 1] in
-                       (",", " "))
-                     )
+                    ((found == 0) or model_label[found - 1] == " ") and
+                    ((found + len(truth) == len(model_label)) or
+                     (model_label[found + len(truth):found + len(truth) + 1] in
+                      (",", " "))
                     )
             ):
-                # found label as stand-alone tern(not within label)
+                # found label as stand-alone term(not within label)
                 if key not in results_dic:
                     results_dic[key] = [truth, model_label, 1]
+            # found within a word/term not a label existing on its own
+            else:
+                if key not in results_dic:
+                    results_dic[key] = [truth, model_label, 0]
 
-                # found within a word/term not a label existing on its own
-                else:
-                    if key not in results_dic:
-                        results_dic[key] = [truth, model_label, 0]
+        # if not found set results dictionary with match=0(no)
         else:
             if key not in results_dic:
                 results_dic[key] = [truth, model_label, 0]
 
-        # Return results dictionary
-        return results_dic
+    # Return results dictionary
+    return results_dic
 
 
 def adjust_results4_isadog():
